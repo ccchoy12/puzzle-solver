@@ -213,8 +213,13 @@ def test_goal(puzzle_state):
 class VisitQ (object):
 ### a list to store visited config to avoid re-visit
 
-    def __init__(self,q=[]):
-        self.q = q
+    # q=None here, not q=[]: a mutable default arg is created ONCE at class
+    # definition time and shared by every instance that doesn't pass q
+    # explicitly. That silently leaked visited-state between back-to-back
+    # calls to bfs_search/dfs_search/A_star_search in the same process
+    # (same input puzzle solved twice returned different costs, 3 vs 19).
+    def __init__(self,q=None):
+        self.q = q if q is not None else []
         
     def addq (self,o):
         self.q.append (o)
@@ -222,8 +227,9 @@ class VisitQ (object):
 class Queue (object):
 ### traditional implementation of Queue data structure
 
-    def __init__(self,q=[]):
-        self.q = q
+    # same mutable-default-arg fix as VisitQ above
+    def __init__(self,q=None):
+        self.q = q if q is not None else []
         
     def addo (self,o):
         self.q.append (o)
@@ -240,8 +246,9 @@ class Queue (object):
 class Stack (object):
 ### traditional implementation of Stack data structure
 
-    def __init__(self,q=[]):
-        self.q = q
+    # same mutable-default-arg fix as VisitQ above
+    def __init__(self,q=None):
+        self.q = q if q is not None else []
         
     def addo (self,o):
         self.q.insert (0,o)
@@ -260,9 +267,10 @@ class Pqueue (object):
 ### use q1 to store the manhcost of the corresponding components
     
 
-    def __init__(self,q=[], q1=[]):
-        self.q = q
-        self.q1 = q1
+    # same mutable-default-arg fix as VisitQ above (two lists here)
+    def __init__(self,q=None, q1=None):
+        self.q = q if q is not None else []
+        self.q1 = q1 if q1 is not None else []
         
     def addo (self,o):
         self.q.append (o)
