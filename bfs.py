@@ -14,6 +14,8 @@ import sys
 
 import math
 
+from collections import deque
+
 #### SKELETON CODE ####
 
 ## The Class that Represents the Puzzle
@@ -227,38 +229,42 @@ class VisitQ (object):
 class Queue (object):
 ### traditional implementation of Queue data structure
 
-    # same mutable-default-arg fix as VisitQ above
+    # deque, not a plain list: del self.q[0] on a list is O(n) (shifts
+    # every remaining element), which turned BFS quadratic once the
+    # queue grew into the tens of thousands. deque.popleft() is O(1).
     def __init__(self,q=None):
-        self.q = q if q is not None else []
-        
+        self.q = q if q is not None else deque()
+
     def addo (self,o):
         self.q.append (o)
-    
+
     def firsto (self):
         return self.q[0]
-    
+
     def delo (self):
-        del self.q[0]
-        
+        self.q.popleft ()
+
     def size (self):
         return (len (self.q))
 
 class Stack (object):
 ### traditional implementation of Stack data structure
 
-    # same mutable-default-arg fix as VisitQ above
+    # push/pop the END of the list instead of insert(0,o)/del self.q[0]
+    # at the front. Same LIFO behavior, but O(1) instead of O(n) per
+    # call (insert-at-front/delete-at-front both shift every element).
     def __init__(self,q=None):
         self.q = q if q is not None else []
-        
+
     def addo (self,o):
-        self.q.insert (0,o)
-    
+        self.q.append (o)
+
     def firsto (self):
-        return self.q[0]
-    
+        return self.q[-1]
+
     def delo (self):
-        del self.q[0]
-        
+        self.q.pop ()
+
     def size (self):
         return (len (self.q))
 
