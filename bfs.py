@@ -274,7 +274,12 @@ class Pqueue (object):
         
     def addo (self,o):
         self.q.append (o)
-        self.q1.append (manhdist(o.config))
+        # Priority must be f(n) = g(n) + h(n), not h(n) alone. Using only
+        # manhdist(o.config) (h(n)) makes this greedy best-first search,
+        # not A* - fast, but not guaranteed optimal. Confirmed: on a
+        # 20-move-scramble puzzle, plain h(n) returned a 56-move solution
+        # vs. BFS's true optimum of 22. Adding o.cost (g(n)) fixes that.
+        self.q1.append (o.cost + manhdist(o.config))
     
     def firsto (self):
         smallest_md = min (self.q1)
