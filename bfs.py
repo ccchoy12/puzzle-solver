@@ -16,6 +16,10 @@ import math
 
 from collections import deque
 
+import heapq
+
+import itertools
+
 #### SKELETON CODE ####
 
 ## The Class that Represents the Puzzle
@@ -274,35 +278,37 @@ class Stack (object):
         return (len (self.q))
 
 class Pqueue (object):
-### Priority Queue with smallest manhatten distance out first
-### use q1 to store the manhcost of the corresponding components
-    
+### Priority Queue ordered by f(n) = g(n) + h(n), smallest out first
+### backed by heapq instead of a linear scan (see addo/firsto/delo below)
 
-    # same mutable-default-arg fix as VisitQ above (two lists here)
-    def __init__(self,q=None, q1=None):
+    # q=None, not q=[]: same mutable-default-arg fix as VisitQ above.
+    def __init__(self,q=None):
         self.q = q if q is not None else []
-        self.q1 = q1 if q1 is not None else []
-        
+        # Tie-breaker so heapq never has to compare two PuzzleState
+        # objects directly when their priorities are equal (PuzzleState
+        # has no __lt__, which would crash the comparison).
+        self._counter = itertools.count()
+
     def addo (self,o):
-        self.q.append (o)
         # Priority must be f(n) = g(n) + h(n), not h(n) alone. Using only
         # manhdist(o.config) (h(n)) makes this greedy best-first search,
         # not A* - fast, but not guaranteed optimal. Confirmed: on a
         # 20-move-scramble puzzle, plain h(n) returned a 56-move solution
         # vs. BFS's true optimum of 22. Adding o.cost (g(n)) fixes that.
-        self.q1.append (o.cost + manhdist(o.config))
-    
+        #
+        # heapq, not min()+list.index(): the old version rescanned the
+        # entire list twice per pop (once in firsto(), once again in
+        # delo()) to find the smallest priority - O(n) per pop, done
+        # twice. heapq.heappush/heappop are O(log n).
+        priority = o.cost + manhdist(o.config)
+        heapq.heappush(self.q, (priority, next(self._counter), o))
+
     def firsto (self):
-        smallest_md = min (self.q1)
-        j = self.q1.index(smallest_md)
-        return self.q[j]
-    
+        return self.q[0][2]
+
     def delo (self):
-        smallest_md = min (self.q1)
-        j = self.q1.index(smallest_md)
-        del self.q[j]
-        del self.q1[j]
-        
+        heapq.heappop(self.q)
+
     def size (self):
         return (len (self.q))
 
