@@ -213,18 +213,23 @@ def test_goal(puzzle_state):
 
 
 class VisitQ (object):
-### a list to store visited config to avoid re-visit
+### a set to store visited config to avoid re-visit
 
     # q=None here, not q=[]: a mutable default arg is created ONCE at class
     # definition time and shared by every instance that doesn't pass q
     # explicitly. That silently leaked visited-state between back-to-back
     # calls to bfs_search/dfs_search/A_star_search in the same process
     # (same input puzzle solved twice returned different costs, 3 vs 19).
+    #
+    # Also a set, not a list: `s.config in vq.q` in solver() runs on every
+    # single node dequeued, and a list membership check is O(n) - against
+    # a visited set that grows into the tens of thousands, that made the
+    # search effectively quadratic. Set membership is O(1).
     def __init__(self,q=None):
-        self.q = q if q is not None else []
-        
+        self.q = q if q is not None else set()
+
     def addq (self,o):
-        self.q.append (o)
+        self.q.add (o)
 
 class Queue (object):
 ### traditional implementation of Queue data structure
