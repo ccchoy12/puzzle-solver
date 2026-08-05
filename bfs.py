@@ -378,7 +378,12 @@ def main():
 
     else:
 
+        # Without this return, execution falls through to the
+        # `final_state` check below with final_state never assigned,
+        # which crashes with UnboundLocalError instead of just printing
+        # the message above and exiting cleanly.
         print("Enter valid command arguments !")
+        return
 
     if final_state != None :
         print ("Total cost is ", final_state.cost)
