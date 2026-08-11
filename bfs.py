@@ -241,8 +241,14 @@ class Queue (object):
     # deque, not a plain list: del self.q[0] on a list is O(n) (shifts
     # every remaining element), which turned BFS quadratic once the
     # queue grew into the tens of thousands. deque.popleft() is O(1).
-    def __init__(self,q=None):
-        self.q = q if q is not None else deque()
+    #
+    # No q= constructor param: a caller-supplied container would need to
+    # already be a deque for delo()'s popleft() to work, which isn't
+    # obvious from the parameter name and isn't validated - so it's been
+    # dropped rather than left as a mismatched-type trap. Nothing in this
+    # codebase constructs Queue with an argument.
+    def __init__(self):
+        self.q = deque()
 
     def addo (self,o):
         self.q.append (o)
@@ -262,8 +268,13 @@ class Stack (object):
     # push/pop the END of the list instead of insert(0,o)/del self.q[0]
     # at the front. Same LIFO behavior, but O(1) instead of O(n) per
     # call (insert-at-front/delete-at-front both shift every element).
-    def __init__(self,q=None):
-        self.q = q if q is not None else []
+    #
+    # No q= constructor param: a caller-supplied list built under the old
+    # "index 0 is top" convention would now be silently read back-to-front
+    # (top is index -1). Dropped rather than left as a silent-wrong-answer
+    # trap. Nothing in this codebase constructs Stack with an argument.
+    def __init__(self):
+        self.q = []
 
     def addo (self,o):
         self.q.append (o)
@@ -281,9 +292,15 @@ class Pqueue (object):
 ### Priority Queue ordered by f(n) = g(n) + h(n), smallest out first
 ### backed by heapq instead of a linear scan (see addo/firsto/delo below)
 
-    # q=None, not q=[]: same mutable-default-arg fix as VisitQ above.
-    def __init__(self,q=None):
-        self.q = q if q is not None else []
+    # No q/q1 constructor params (q1 existed pre-heapq, for a parallel
+    # priority list that no longer exists): a caller passing the old
+    # two-arg q=,q1= form would hit a TypeError, and a caller passing
+    # just q= would need heap-ordered (priority, counter, state) tuples,
+    # which isn't obvious from the parameter name and isn't validated.
+    # Dropped rather than left as a mismatched-contract trap. Nothing in
+    # this codebase constructs Pqueue with an argument.
+    def __init__(self):
+        self.q = []
         # Tie-breaker so heapq never has to compare two PuzzleState
         # objects directly when their priorities are equal (PuzzleState
         # has no __lt__, which would crash the comparison).
